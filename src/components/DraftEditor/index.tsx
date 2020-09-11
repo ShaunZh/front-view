@@ -66,6 +66,7 @@ const DraftEditor: React.FC = () => {
 
   useEffect(() => {
     console.log('state: ', editorState);
+    editorState.getCurrentInlineStyle;
     const contentState = editorState.getCurrentContent();
     console.log('contentState: ', contentState);
     console.log('convert contentState: ', convertToRaw(contentState));
