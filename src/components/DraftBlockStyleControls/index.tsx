@@ -3,16 +3,16 @@
  * @Author: Hexon
  * @Date: 2020-09-11 18:30:10
  * @LastEditors: Hexon
- * @LastEditTime: 2020-09-11 18:59:54
+ * @LastEditTime: 2020-09-15 16:56:42
  */
 import React from 'react';
 import StyleButton from '../DraftStyleButton';
+import { DraftBlockType } from 'draft-js';
 
 interface Props {
   editorState: any;
   blockStyles: IStyle[];
-  currentStyle: Set<string>;
-  onToggle: () => void;
+  onToggle: (blockStyles: DraftBlockType) => void;
 }
 
 export default (props: Props) => {

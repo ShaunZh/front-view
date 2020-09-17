@@ -22,14 +22,20 @@
   "dependencies": {
     "@ant-design/pro-layout": "^5.0.12",
     "@types/draft-js": "^0.10.44",
+    "@types/draftjs-to-html": "^0.8.0",
     "@umijs/preset-react": "1.x",
     "@umijs/test": "^3.2.19",
     "draft-js": "^0.11.7",
+    "draft-js-focus-plugin": "^3.0.1",
+    "draft-js-image-plugin": "^2.0.7",
+    "draft-js-plugins-editor": "^3.0.0",
+    "draftjs-to-html": "^0.9.1",
     "lint-staged": "^10.0.7",
     "prettier": "^1.19.1",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "umi": "^3.2.19",
+    "xss": "^1.0.8",
     "yorkie": "^2.0.0"
   }
 }

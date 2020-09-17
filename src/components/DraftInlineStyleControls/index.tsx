@@ -3,14 +3,14 @@
  * @Author: Hexon
  * @Date: 2020-09-11 18:30:10
  * @LastEditors: Hexon
- * @LastEditTime: 2020-09-11 18:59:22
+ * @LastEditTime: 2020-09-15 16:36:47
  */
 import React from 'react';
 import StyleButton from '../DraftStyleButton/';
 
 interface Props {
   inlineStyles: IStyle[];
-  onToggle: () => void;
+  onToggle: (inlineStyles: string) => void;
   editorState: any;
 }
 
