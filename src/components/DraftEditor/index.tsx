@@ -8,6 +8,7 @@ import {
   DraftBlockType,
   ContentBlock,
   getDefaultKeyBinding,
+  ContentState,
 } from 'draft-js';
 
 import createImagePlugin from 'draft-js-image-plugin';
@@ -27,6 +28,7 @@ import { insertRadioBlock } from './modifiers/insertRadioBlock';
 import renderTreeGenerator, { getBlockData } from '../renderTreeGenerator';
 
 import RenderH5 from '../RenderH5';
+import ComponentEdit from '../ComponentEdit';
 
 const focusPlugin = createFocusPlugin();
 const decorator = composeDecorators(focusPlugin.decorator);
@@ -247,18 +249,33 @@ const initialState1 = {
 };
 /* eslint-enable */
 
-interface Props {}
+interface Props {
+  initialState?: any; // 编辑器初始化数据
+  onEditComponent: (data: any) => void; // 进行业务组件编辑的回调函数
+  // draft editor onBlur后传出值
+  onSaveData: (drafRawContentState: ContentState, renderData: any[]) => void;
+}
 interface State {
   editorState: EditorState;
   renderData: any;
   radios: Map<string, string>;
+  // 当前选择的块组件的key，也就是业务组件（因业务组件均是使用entity实现的，因此也就是entity的key）
+  currentSelectedBlockKey: string;
+  currentSelectBlockConent: {
+    type: string;
+    data: any;
+  } | null;
 }
 
 class DraftEditor extends React.Component<Props> {
   state: State = {
     radios: new Map(),
-    editorState: EditorState.createWithContent(convertFromRaw(initialState)),
+    editorState: EditorState.createWithContent(
+      convertFromRaw(this.props.initialState || { blocks: [], entityMap: {} }),
+    ),
     renderData: [],
+    currentSelectedBlockKey: '',
+    currentSelectBlockConent: null,
   };
 
   onChange = (editorState: EditorState) => {
@@ -352,6 +369,39 @@ class DraftEditor extends React.Component<Props> {
     this.setState({
       renderData,
     });
+    // 保存值到父组件
+    this.props.onSaveData(contentRawData, renderData);
+    console.log('save data: ', convertToRaw(contentRawData));
+  };
+
+  // 用于父组件更新业务组件数据时，需要通过修改draft editor
+  updateEntityData = (updateData: { type: string; data: any }) => {
+    const { currentSelectedBlockKey } = this.state;
+    if (currentSelectedBlockKey) {
+      const currentContent = this.state.editorState.getCurrentContent();
+      const currentContentBlock = currentContent.getBlockForKey(
+        currentSelectedBlockKey,
+      );
+      if (!currentContentBlock) {
+        return;
+      }
+      const entityKey = currentContentBlock.getEntityAt(0);
+      console.log('更新业务组件的值: ', updateData);
+      // 更新entityData：可以用于更新业务组件
+      const newContentState = currentContent.replaceEntityData(
+        entityKey,
+        // 只需要更新entity的数据，不需要更新type，因为可以通过entityKey确定类型
+        updateData.data,
+      );
+      const newEditorState = EditorState.set(this.state.editorState, {
+        currentContent: newContentState,
+      });
+      console.log('update: ', updateData);
+      this.setState({
+        editorState: newEditorState,
+        currentSelectBlockConent: updateData,
+      });
+    }
   };
 
   editComponent = () => {};
@@ -367,13 +417,21 @@ class DraftEditor extends React.Component<Props> {
     );
     // 说明是原子类型
     if (blockData) {
-      console.log('atomic block: ', blockData);
+      console.log('focus block data: ', blockData);
+
+      // 保存当前选中的块组件的key(实际是块组件的entity的key)
+      this.setState({
+        currentSelectedBlockKey: anchorKey,
+        currentSelectBlockConent: blockData,
+      });
+      // 将当前选中的块组件的数据传出去，用于编辑块组件
+      this.props.onEditComponent(blockData);
     } else {
-      console.log('富文本内容');
+      // 富文本内容只在富文本编辑器中进行修改，不通过外部业务组件修改
+      console.log('富文本内容', currentContentBlock);
     }
     // 1. 获取所选择block的内容，包括block type和data
-
-    this.editor.focus();
+    // this.editor.focus();
   };
   render() {
     const { editorState } = this.state;
@@ -401,7 +459,13 @@ class DraftEditor extends React.Component<Props> {
             <h3>组件区</h3>
             <button onClick={this.insertRadios}>单选</button>
           </div>
-          <div className="bottom"></div>
+          <div className="bottom">
+            <ComponentEdit
+              type={this.state.currentSelectBlockConent?.type || ''}
+              data={this.state.currentSelectBlockConent?.data}
+              updateEditorData={this.updateEntityData}
+            ></ComponentEdit>
+          </div>
         </div>
 
         <div className="RichEditor-root">
@@ -431,9 +495,9 @@ class DraftEditor extends React.Component<Props> {
               // blockRenderMap={blockRenderMap}
               plugins={plugins}
               onBlur={this.onBlur}
-              ref={element => {
-                this.editor = element;
-              }}
+              // ref={element => {
+              //   this.editor = element;
+              // }}
             />
           </div>
         </div>

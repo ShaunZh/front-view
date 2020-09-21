@@ -6,6 +6,7 @@ import { Radio } from 'antd';
 interface RadioItem {
   label: string;
   value: string;
+  image?: string;
 }
 
 interface Props {
@@ -41,7 +42,10 @@ export default (props: Props): React.ReactElement => {
       <Radio.Group onChange={onChangeCom} value={value} disabled={readonly}>
         {options.map((item: RadioItem) => (
           <Radio style={radioStyle} key={item.value} value={item.value}>
-            {item.label}
+            {item.label && <span>{item.label}</span>}
+            <div>
+              {item.image && <img src={item.image} alt="radio-image" />}
+            </div>
           </Radio>
         ))}
       </Radio.Group>
